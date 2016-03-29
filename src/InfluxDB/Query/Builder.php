@@ -61,6 +61,16 @@ class Builder
     protected $limitClause = '';
 
     /**
+     * @var string
+     */
+    protected $offsetClause = '';
+
+    /**
+     * @var array
+     */
+    protected $groupBy;
+
+    /**
      * @param Database $db
      */
     public function __construct(Database $db)
@@ -178,6 +188,12 @@ class Builder
         return $this;
     }
 
+    public function groupBy($field = 'type') {
+        $this->groupBy[] = $field;
+
+        return $this;
+    }
+
     /**
      * Set's the time range to select data from
      *
@@ -217,6 +233,20 @@ class Builder
     public function limit($count)
     {
         $this->limitClause = sprintf(' LIMIT %s', (int) $count);
+
+        return $this;
+    }
+
+    /**
+     * Offset the ResultSet to n records
+     *
+     * @param int $count
+     *
+     * @return $this
+     */
+    public function offset($count)
+    {
+        $this->offsetClause = sprintf(' OFFSET %s', (int) $count);
 
         return $this;
     }
@@ -262,8 +292,16 @@ class Builder
 
         }
 
+        if (!empty($this->groupBy)) {
+            $query .= ' GROUP BY ' . implode(',', $this->groupBy);
+        }
+
         if ($this->limitClause) {
             $query .= $this->limitClause;
+        }
+
+        if ($this->offsetClause) {
+            $query .= $this->offsetClause;
         }
 
         return $query;
